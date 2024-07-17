@@ -271,9 +271,28 @@ extension EachNavigationBar {
     }
     
     var barMinY: CGFloat {
-        let window = window ?? UIApplication.shared.windows.first { $0.isKeyWindow }
-        
-        return window?.safeAreaInsets.top ?? 0
+        if let viewController = viewController {
+            // 检查视图控制器是否嵌套在导航栏控制器中并且是全屏模态展示
+            if let navigationController = viewController.navigationController,
+               navigationController.modalPresentationStyle == .fullScreen || navigationController.modalPresentationStyle == .overFullScreen {
+                let window = window ?? UIApplication.shared.windows.first { $0.isKeyWindow }
+                return window?.safeAreaInsets.top ?? 0
+            }
+            
+            // 检查视图控制器是否是全屏模态展示
+            if viewController.presentingViewController != nil &&
+                (viewController.modalPresentationStyle == .fullScreen || viewController.modalPresentationStyle == .overFullScreen) {
+                let window = window ?? UIApplication.shared.windows.first { $0.isKeyWindow }
+                return window?.safeAreaInsets.top ?? 0
+            }
+            
+            // 非模态展示
+            if viewController.presentingViewController == nil {
+                let window = window ?? UIApplication.shared.windows.first { $0.isKeyWindow }
+                return window?.safeAreaInsets.top ?? 0
+            }
+        }
+        return 0
     }
     
     func adjustsLayout() {
@@ -338,10 +357,10 @@ private extension EachNavigationBar {
             x: layoutPaddings.left - layoutMargins.left,
             y: isLargeTitleShown ? 0 : additionalHeight,
             width: layoutMargins.left
-                + layoutMargins.right
-                - layoutPaddings.left
-                - layoutPaddings.right
-                + contentView.frame.width,
+            + layoutMargins.right
+            - layoutPaddings.left
+            - layoutPaddings.right
+            + contentView.frame.width,
             height: contentView.frame.height
         )
     }
