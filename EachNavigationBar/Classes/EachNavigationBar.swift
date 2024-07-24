@@ -302,13 +302,24 @@ extension EachNavigationBar {
         
         if automaticallyAdjustsPosition {
             frame = navigationBar.frame
-            frame.origin.y = barMinY
+            frame.origin.y = isFullScreen() ? barMinY : 0
         } else {
             frame.size = navigationBar.frame.size
         }
         
         frame.size.height = navigationBar.frame.height + _additionalHeight
     }
+    
+    func isFullScreen() -> Bool {
+        if let navigationController = viewController?.navigationController {
+            // 检查导航控制器是否是根视图控制器
+            return navigationController.presentingViewController == nil || navigationController.modalPresentationStyle == .fullScreen
+        } else {
+            // 检查当前控制器是否是通过模态方式全屏展示的
+            return viewController?.presentingViewController == nil || viewController?.modalPresentationStyle == .fullScreen
+        }
+    }
+    
 }
 
 // MARK: - private
@@ -360,10 +371,10 @@ private extension EachNavigationBar {
                 x: layoutPaddings.left - layoutMargins.left,
                 y: isLargeTitleShown ? 0 : additionalHeight,
                 width: layoutMargins.left
-                    + layoutMargins.right
-                    - layoutPaddings.left
-                    - layoutPaddings.right
-                    + contentView.frame.width,
+                + layoutMargins.right
+                - layoutPaddings.left
+                - layoutPaddings.right
+                + contentView.frame.width,
                 height: contentView.frame.height
             )
         } else {
