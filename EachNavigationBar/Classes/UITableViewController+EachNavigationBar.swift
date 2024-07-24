@@ -11,29 +11,32 @@ import UIKit
 extension UITableViewController {
     
     private var observation: NSKeyValueObservation {
-        if let observation = objc_getAssociatedObject(
-            self,
-            &AssociatedKeys.observation
-            ) as? NSKeyValueObservation {
-            return observation
+        let observer = withUnsafePointer(to: &AssociatedKeys.observation) {
+            objc_getAssociatedObject(self, $0) as? NSKeyValueObservation
+        }
+        
+        if let observer {
+            return observer
         }
         
         let observation = tableView.observe(
             \.contentOffset,
             options: .new
-        ) { [weak self] tableView, change in
+        ) { [weak self] tableView, _ in
             guard let `self` = self else { return }
             
             self.view.bringSubviewToFront(self._navigationBar)
             self._navigationBar.frame.origin.y = tableView.contentOffset.y + self._navigationBar.barMinY
         }
         
-        objc_setAssociatedObject(
-            self,
-            &AssociatedKeys.observation,
-            observation,
-            .OBJC_ASSOCIATION_RETAIN_NONATOMIC
-        )
+        withUnsafePointer(to: &AssociatedKeys.observation) {
+            objc_setAssociatedObject(
+                self,
+                $0,
+                observation,
+                .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+            )
+        }
         
         return observation
     }
